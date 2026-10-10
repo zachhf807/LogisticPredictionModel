@@ -1,4 +1,4 @@
-# NAME: Zach Rangel | NUMBER: 8914
+# NAME: Zach Rangel
 
 import pandas as pd
 import polars as pl
@@ -60,6 +60,20 @@ test_df = test_df.with_columns([
     ((pl.col("shotclock") <= 4.0)).cast(pl.Float64).alias("rushed_shot")
 ])
 
+train_df = train_df.with_columns([
+    ((pl.col("locationx")**2 + pl.col("locationy")**2).sqrt()).alias("calculated_dist"),
+    (
+        (pl.col("three").cast(pl.Float64, strict=False) == 1.0) & (pl.col("locationy") <= 14.0)
+    ).cast(pl.Float64).alias("is_corner_three")
+])
+
+test_df = test_df.with_columns([
+    ((pl.col("locationx")**2 + pl.col("locationy")**2).sqrt()).alias("calculated_dist"),
+    (
+        (pl.col("three").cast(pl.Float64, strict=False) == 1.0) & (pl.col("locationy") <= 14.0)
+    ).cast(pl.Float64).alias("is_corner_three")
+])
+
 cols = [
     "num_contesters", "distcont1", "distcont2", "distcont3", "distcont4",
     "contested", "gamestate", "shottype",
@@ -92,3 +106,4 @@ if columns_to_drop:
 
 submission = submission.join(predictions_df, on="shot_id", how="left")
 submission.write_csv("submission.csv")
+print(submission.head())
